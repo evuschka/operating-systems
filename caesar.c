@@ -1,49 +1,58 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "caesar.h"
 
-// Общая функция обработки, чтобы не дублировать код.
-// Не используем глобальные переменные для потокобезопасности.
-static char* process_text(const char* text, int shift) {
-    if (text == NULL) return NULL;
 
-    // Математический трюк для обработки отрицательных сдвигов и сдвигов > 26
-    shift = shift % 26;
-    if (shift < 0) {
-        shift += 26;
+static int mod(int a, int b) {
+    int r = a % b;
+    return r < 0 ? r + b : r;
+}
+
+
+static char* process_text(const char* text, int shift) {
+    if (text == NULL) {
+        return NULL;
     }
 
-    int len = strlen(text);
-    // Выделяем память под новую строку (+1 для нуль-терминатора)
-    char* result = (char*)malloc(len + 1);
-    if (result == NULL) return NULL;
 
-    for (int i = 0; i < len; i++) {
+    size_t len = strlen(text);
+    char* result = (char*)malloc(len + 1);
+    if (result == NULL) {
+        return NULL; // Ошибка выделения памяти
+    }
+
+    for (size_t i = 0; i < len; i++) {
         char c = text[i];
-        // Обрабатываем только строчные латинские буквы
+        
+
         if (c >= 'a' && c <= 'z') {
-            result[i] = 'a' + (c - 'a' + shift) % 26;
+           
+            int pos = c - 'a';
+            int new_pos = mod(pos + shift, 26);
+            result[i] = 'a' + new_pos;
         } else {
-            // Остальные символы оставляем без изменений
+
             result[i] = c;
         }
     }
-    result[len] = '\0';
     
+    result[len] = '\0';
     return result;
 }
 
-char* caesar_encrypt(const char* text, int shift) {
+extern char* caesar_encrypt(const char* text, int shift) {
+    // Шифрование — это просто сдвиг вперед
     return process_text(text, shift);
 }
 
-char* caesar_decrypt(const char* text, int shift) {
-    // Дешифрование - это тот же сдвиг, но в обратную сторону
+extern char* caesar_decrypt(const char* text, int shift) {
+    // Дешифрование — это сдвиг назад (отрицательный сдвиг)
     return process_text(text, -shift);
 }
 
-// Функция для очистки выделенной памяти
-void free_result(char* str) {
+
+extern void free_string(char* str) {
     if (str != NULL) {
         free(str);
     }
