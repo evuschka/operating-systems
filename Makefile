@@ -1,30 +1,29 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -pedantic -fPIC
 LDFLAGS = -shared
-
-LIBRARY = libcaesar.so
+LIB_NAME = libcaesar.so
 SRC = caesar.c
-OBJ = $(SRC:.c=.o)
+OBJ = caesar.o
 
-.PHONY: all install test clean
+.PHONY: all make install test clean
 
-all: $(LIBRARY)
+all: $(LIB_NAME)
 
-$(LIBRARY): $(OBJ)
+make: all
+
+$(LIB_NAME): $(OBJ)
 	$(CC) $(LDFLAGS) -o $@ $^
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-install: $(LIBRARY)
-	# Установка в системную директорию требует прав суперпользователя (sudo)
-	sudo cp $(LIBRARY) /usr/local/lib/
-	sudo chmod 755 /usr/local/lib/$(LIBRARY)
-	# ldconfig обновляет кэш системных библиотек, чтобы Python ее увидел
-	sudo ldconfig
+install: $(LIB_NAME)
+	# Требуются права суперпользователя (sudo make install)
+	install -m 755 $(LIB_NAME) /usr/local/lib/
+	ldconfig /usr/local/lib/ || true
 
-test:
+test: $(LIB_NAME)
 	python3 test.py
 
 clean:
-	rm -f $(OBJ) $(LIBRARY)
+	rm -f $(OBJ) $(LIB_NAME)
